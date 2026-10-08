@@ -20,8 +20,26 @@ function pipe(i){const s=['Question','Retrieval','Context','Answer'];return `<di
 function renderMain(){
   const m=$('#main');
   if(state.view==='evaluation'){
-    const best=(k)=>Math.max(...SCORES.map(r=>r[k]));
-    m.innerHTML=`<div class="wrap eval"><div class="label">Prompt engineering</div><h1>Evaluation</h1><p class="lede">The same ten questions were run against the knowledge base with each prompting technique and rated on a five-point scale.</p><div class="scroll"><table><thead><tr><th>Technique</th><th>Accuracy</th><th>Clarity</th><th>Relevance</th><th>Observation</th></tr></thead><tbody>${SCORES.map(r=>`<tr>${[0,1,2,3,4].map(c=>{if(!c)return `<td>${r[0]}</td>`;if(c===4)return `<td style="color:#4a554d;min-width:200px">${r[4]}</td>`;return `<td class="${r[c]===best(c)?'best':''}"><div class="score">${r[c].toFixed(1)}<i><u style="width:${r[c]*20}%"></u></i></div></td>`}).join('')}</tr>`).join('')}</tbody></table></div><p class="note">Role-based prompting produced the clearest answers, while few-shot prompting was the most accurate. Zero-shot remains a reasonable baseline for simple factual lookups. Darker bars mark the highest score in each column.</p></div>`;return}
+    const N={zero_shot:'ZERO-SHOT',few_shot:'FEW-SHOT',role_based:'ROLE-BASED'},ev=state.ev;
+    const head=`<div class="label">Prompt engineering</div><h1>Evaluation</h1>`;
+    const runBtn=`<button class="go" id="runEv" style="padding:14px 24px;margin-top:22px" ${state.evRun?'disabled':''}>${state.evRun?'Running evaluation…':ev?'Run again':'Run evaluation'}</button>`;
+    const err=state.evErr?`<div class="err" role="alert" style="margin-top:20px"><b>Evaluation failed</b>${esc(state.evErr)}</div>`:'';
+    const status=state.evRun?`<div class="status" role="status" style="margin-top:22px"><span class="pulse"></span>Answering 5 questions with 3 techniques and scoring each. This can take a minute or two.</div>`:'';
+    let body='';
+    if(ev===undefined)body='<p class="lede">Loading the latest results…</p>';
+    else if(!ev)body='<p class="lede">No evaluation has been run yet. It asks the same five questions with each prompting technique and scores every answer from 1 to 5.</p>';
+    else{
+      const T=Object.keys(ev.summary),best=k=>Math.max(...T.map(t=>ev.summary[t][k]??0));
+      const cell=(t,k)=>{const v=ev.summary[t][k];return v==null?'<td>-</td>':`<td class="${v===best(k)?'best':''}"><div class="score">${v.toFixed(2)}<i><u style="width:${v*20}%"></u></i></div></td>`};
+      body=`<p class="lede">Same retrieval and same five questions for every technique, scored 1 to 5 by a judge model (${esc(ev.judge_model||'')}). Answers by ${esc(ev.llm_model||'')}.</p>
+      <div class="scroll"><table><thead><tr><th>Technique</th><th>Accuracy</th><th>Clarity</th><th>Relevance</th><th>Overall</th><th>Scored</th></tr></thead><tbody>${T.map(t=>`<tr><td>${N[t]||t}${ev.winner===t?' (best)':''}</td>${['accuracy','clarity','relevance','overall'].map(k=>cell(t,k)).join('')}<td>${ev.summary[t].scored_questions}/${ev.questions.length}</td></tr>`).join('')}</tbody></table></div>
+      ${ev.analysis?`<p class="note">${esc(ev.analysis)}</p>`:''}
+      <h2 style="font:400 24px var(--serif);color:var(--forest);margin:44px 0 6px">By question</h2>
+      ${ev.questions.map((q,i)=>`<details><summary>${i+1}. ${esc(q.question)}</summary>${Object.keys(q.results).map(t=>{const r=q.results[t];return `<div class="qa"><b>${N[t]||t}</b> ${r.scores?`<span>Accuracy ${r.scores.accuracy} · Clarity ${r.scores.clarity} · Relevance ${r.scores.relevance}</span>`:''}<p>${r.error?'Error: '+esc(r.error):esc(r.answer||'(empty answer)')}</p>${r.reason?`<small>${esc(r.reason)}</small>`:''}</div>`}).join('')}</details>`).join('')}
+      <p class="note" style="font-size:14px">Run on ${esc((ev.created_at||'').replace('T',' ').slice(0,16))} UTC. Five questions is a small sample, so treat differences as indicative.</p>`;
+    }
+    m.innerHTML=`<div class="wrap eval">${head}${body}${runBtn}${status}${err}</div>`;
+    const b=$('#runEv');if(b)b.onclick=runEval;return}
   if(state.view==='settings'){
     const c=state.cfg||{};
     const rows=[['Language model',c.llm_model],['Embedding model',c.embedding_model],['Chunk size',c.chunk_size],['Chunk overlap',c.chunk_overlap],['Retrieved chunks',c.top_k],['Chunks indexed',c.chunk_count],['Language model key',c.llm_ready?'Configured':'Missing: add GROQ_API_KEY to .env']];
@@ -73,6 +91,21 @@ async function ask(){
   clearTimeout(t1);clearTimeout(t2);state.busy=false;render();
   if(state.answer&&matchMedia('(max-width:1100px)').matches)setCtx(false);
 }
+async function loadEval(){
+  try{const r=await fetch('/api/evaluate/latest');state.ev=r.ok?await r.json():null}catch(e){state.ev=null}
+  render();
+}
+async function runEval(){
+  if(state.evRun)return;
+  state.evRun=true;state.evErr=null;render();
+  try{
+    const r=await fetch('/api/evaluate',{method:'POST'});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Request failed ('+r.status+').');
+    state.ev=d;
+  }catch(e){state.evErr=e.message}
+  state.evRun=false;render();
+}
 async function load(){
   try{
     const [c,dl]=await Promise.all([fetch('/api/config').then(r=>r.json()),fetch('/api/documents').then(r=>r.json())]);
@@ -84,7 +117,7 @@ async function load(){
 function setCtx(o){$('#ctx').classList.toggle('open',o);$('#ctxT').setAttribute('aria-expanded',o);$('#ctxI').textContent=o?'Hide':'Show'}
 $('#ctxT').onclick=()=>setCtx(!$('#ctx').classList.contains('open'));
 function render(){renderMain();renderChunks();renderDocs();$('#ctx').classList.toggle('hide',state.view!=='workspace')}
-function setView(v){state.view=v;document.querySelectorAll('nav [data-view]').forEach(b=>b.toggleAttribute('aria-current',b.dataset.view===v)||b.removeAttribute('aria-current'));document.querySelectorAll('nav [data-view]').forEach(b=>{if(b.dataset.view===v)b.setAttribute('aria-current','page')});$('#ws').style.gridTemplateColumns=v==='workspace'?'':'288px minmax(0,1fr)';closeDrawer();render()}
+function setView(v){state.view=v;if(v==='evaluation'&&state.ev===undefined)loadEval();document.querySelectorAll('nav [data-view]').forEach(b=>b.toggleAttribute('aria-current',b.dataset.view===v)||b.removeAttribute('aria-current'));document.querySelectorAll('nav [data-view]').forEach(b=>{if(b.dataset.view===v)b.setAttribute('aria-current','page')});$('#ws').style.gridTemplateColumns=v==='workspace'?'':'288px minmax(0,1fr)';closeDrawer();render()}
 document.querySelectorAll('nav [data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 /* drawer */
 function closeDrawer(){$('#side').classList.remove('open');$('#menu').setAttribute('aria-expanded',false);const s=$('.scrim');s&&s.remove()}
