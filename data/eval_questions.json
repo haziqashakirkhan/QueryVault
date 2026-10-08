@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What are the four stages of a RAG pipeline?",
+    "reference": "Ingestion, retrieval, augmentation and generation."
+  },
+  {
+    "question": "How does semantic search differ from keyword search?",
+    "reference": "Keyword search matches exact words, while semantic search compares meaning using embeddings, so it can match different words with the same idea."
+  },
+  {
+    "question": "Which distance metric does ChromaDB use by default?",
+    "reference": "Squared L2 (squared Euclidean) distance."
+  },
+  {
+    "question": "Why is few-shot prompting more expensive than zero-shot prompting?",
+    "reference": "The examples add extra tokens to every prompt, making each request longer, slower and more costly."
+  },
+  {
+    "question": "What temperature is recommended for factual question answering?",
+    "reference": "A low temperature between 0 and 0.2."
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "context": "[1] (source: office_policy.txt)\nThe office opens at 8:30 and closes at 17:30 on weekdays. Visitors must sign in at the front desk and wear a badge.",
+    "question": "What must visitors do when they arrive?",
+    "answer": "Visitors must sign in at the front desk and wear a badge [1]."
+  },
+  {
+    "context": "[1] (source: bike_manual.md)\nTyre pressure for the city model should be between 50 and 70 PSI. Check the pressure every two weeks.",
+    "question": "How often should tyre pressure be checked?",
+    "answer": "Tyre pressure should be checked every two weeks [1]."
+  },
+  {
+    "context": "[1] (source: cafe_menu.txt)\nThe cafe serves coffee, tea and pastries. Breakfast is available until 11:00.",
+    "question": "Does the cafe serve pizza?",
+    "answer": "The provided documents do not contain this information."
+  }
+]

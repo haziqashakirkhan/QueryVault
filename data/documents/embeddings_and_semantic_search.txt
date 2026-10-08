@@ -1,0 +1,9 @@
+Embeddings and Semantic Search
+
+An embedding is a list of numbers, called a vector, that represents the meaning of a piece of text. Sentence-transformer models such as all-MiniLM-L6-v2 map a sentence to a vector of 384 dimensions. Texts with similar meaning end up close together in this vector space, while unrelated texts end up far apart.
+
+Measuring closeness. The most common measure is cosine similarity, which compares the angle between two vectors. It ranges from -1 to 1, and higher means more similar. Cosine distance is defined as 1 minus cosine similarity, so a distance of 0 means identical direction and a larger distance means less similar text.
+
+Semantic search versus keyword search. Keyword search, for example BM25 or TF-IDF, matches the exact words in the query. It fails when the query and the document use different words for the same idea, such as car and automobile. Semantic search compares meaning instead of spelling, so a question like "How do I reset my password?" can find a passage titled "Steps to recover account access". The weakness of semantic search is that it can miss exact identifiers, product codes and rare names, which keyword search handles well. Many production systems therefore use hybrid search, which combines both methods.
+
+Chunking. Long documents are split into chunks before embedding. Small chunks give precise matches but may lose surrounding context. Large chunks keep context but blur several topics into one vector. A small overlap between neighbouring chunks protects sentences that sit on a boundary.

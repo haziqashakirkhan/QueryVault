@@ -1,0 +1,13 @@
+Prompt Engineering
+
+Prompt engineering is the practice of writing instructions that make a language model produce useful, reliable output. The same model can give very different answers depending on how it is asked.
+
+Zero-shot prompting gives the model an instruction and no examples. It relies entirely on what the model learned during training. It is fast and cheap, but the format and level of detail of the answer can vary from one run to the next.
+
+Few-shot prompting adds a small number of worked examples, usually two to three, before the real question. The examples show the desired format, tone and level of detail, so the output becomes more consistent. The cost is that every example adds tokens to the prompt, which makes each request longer, slower and more expensive than a zero-shot request. The quality of the examples matters, because the model copies their style, including their mistakes.
+
+Role-based prompting assigns the model a persona or job, for example "You are a technical document analyst". A role sets the expected expertise, tone and rules, such as answering only from the supplied context and citing sources. It often improves focus and reduces unsupported claims.
+
+Temperature controls randomness. For factual question answering, a low temperature between 0 and 0.2 is recommended because it makes the model choose the most likely words and gives repeatable answers. Higher temperatures suit creative writing.
+
+Good practices include being specific, stating the output format, and telling the model what to do when the information is missing.

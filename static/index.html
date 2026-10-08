@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QueriVault — AI document intelligence</title>
+<meta name="color-scheme" content="light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="app">
+<nav aria-label="Primary">
+  <div style="display:flex;align-items:center">
+    <button class="menu" id="menu" aria-expanded="false" aria-controls="side">Documents</button>
+    <div class="brand"><b>QUERIVAULT</b><span>AI DOCUMENT INTELLIGENCE</span></div>
+  </div>
+  <ul>
+    <li><button data-view="workspace" aria-current="page">Workspace</button></li>
+    <li><button data-view="evaluation">Evaluation</button></li>
+    <li><button data-view="settings">Settings</button></li>
+  </ul>
+</nav>
+
+<div class="ws" id="ws">
+  <aside class="sidebar" id="side" aria-label="Knowledge base">
+    <div class="label">Knowledge base</div>
+    <button class="btn-up" id="up1">Upload documents</button>
+    <div class="drop" id="drop">Drop files here<small>PDF · TXT · MD</small></div>
+    <input type="file" id="file" multiple accept=".pdf,.txt,.md" hidden>
+    <ul class="docs" id="docs" aria-live="polite"></ul>
+    <div class="count" id="count"></div>
+  </aside>
+
+  <main id="main"></main>
+
+  <aside class="ctx" id="ctx" aria-label="Retrieved context">
+    <button class="ctx-toggle" id="ctxT" aria-expanded="false"><span>Retrieved context</span><span id="ctxI">Show</span></button>
+    <div class="ctx-body">
+      <div class="label lbl-d">Retrieved context</div>
+      <h2 class="lbl-d">Sources</h2>
+      <p>Top 3 semantically relevant chunks</p>
+      <div id="chunks"></div>
+    </div>
+  </aside>
+</div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
